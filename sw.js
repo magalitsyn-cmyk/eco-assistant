@@ -1,5 +1,5 @@
 // ЭкоАссистент — service worker: приложение работает без сети после первого открытия.
-const CACHE = "eco-assistant-v1";
+const CACHE = "eco-assistant-v2";
 const SHELL = [
   "./",
   "./index.html",

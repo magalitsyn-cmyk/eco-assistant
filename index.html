@@ -177,7 +177,7 @@ pre.act{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace
     <!-- ПРОГРАММА -->
     <section class="view" id="v-program" aria-labelledby="h-program">
       <p class="eyebrow">Программа</p>
-      <h2 id="h-program">90 минут, ИИ ведёт протокол</h2>
+      <h2 id="h-program">10:00–11:45, ИИ ведёт протокол</h2>
       <p class="lead">Отмеченный блок идёт сейчас. После встречи протокол придёт сюда, во вкладку «Лента».</p>
       <ol class="prog" id="prog"></ol>
     </section>
@@ -273,7 +273,7 @@ pre.act{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
         <div style="display:flex;flex-direction:column;gap:8px">
           <b>Протокол и проект резолюции</b>
-          <span class="muted">Придут сюда через 15 минут после окончания круглого стола.</span>
+          <span class="muted">Придут сюда в 12:00, через 15 минут после окончания круглого стола.</span>
           <button class="btn ghost" id="protoBtn" aria-expanded="false" style="align-self:flex-start">Посмотреть пример</button>
         </div>
       </div>
@@ -345,21 +345,23 @@ pre.act{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace
   document.querySelectorAll(".tab").forEach(function(b){ b.addEventListener("click", function(){ show(b.dataset.view); }); });
 
   // ---------- program ----------
-  // Время начала круглого стола. Пока не задано — в демо «сейчас» идут доклады участников.
-  var EVENT_START = null; // пример: "2026-11-12T11:00:00+03:00"
+  // День круглого стола (начало в 10:00 по Москве). Пока не задан — в демо «сейчас» идут доклады участников.
+  var EVENT_DATE = null; // пример: "2026-11-12"
+  var START_MIN = 10 * 60;
   var PROGRAM = [
-    {from:0,  to:5,  b:"Открытие", d:"ИИ-соведущий представляется, QR-код на приложение"},
-    {from:5,  to:10, b:"Пульс зала", d:"Голосование о самых острых задачах — вкладка «Пульс»"},
-    {from:10, to:50, b:"Доклады участников", d:"Лента тезисов, вопросы спикерам — вкладка «Вопросы»"},
-    {from:50, to:60, b:"Доклад с живой демонстрацией", d:"Фото → анализ ИИ — вкладка «Фото»", ours:true},
-    {from:60, to:75, b:"Дискуссия", d:"Топ-вопросы зала, справки по нормам"},
-    {from:75, to:85, b:"Резолюция", d:"Проект на экране, голосование за приоритеты"},
-    {from:85, to:90, b:"Закрытие", d:"Главные итоги; протокол через 15 минут"}
+    {from:0,   to:15,  b:"Вступительное слово руководителя", d:"ИИ-секретарь уже ведёт протокол"},
+    {from:15,  to:20,  b:"Открытие", d:"ИИ-соведущий представляется, QR-код на приложение"},
+    {from:20,  to:25,  b:"Пульс зала", d:"Голосование о самых острых задачах — вкладка «Пульс»"},
+    {from:25,  to:65,  b:"Доклады участников", d:"Лента тезисов, вопросы спикерам — вкладка «Вопросы»"},
+    {from:65,  to:75,  b:"Доклад с живой демонстрацией", d:"Фото → анализ ИИ — вкладка «Фото»", ours:true},
+    {from:75,  to:90,  b:"Дискуссия", d:"Топ-вопросы зала, справки по нормам"},
+    {from:90,  to:100, b:"Резолюция", d:"Проект на экране, голосование за приоритеты"},
+    {from:100, to:105, b:"Закрытие", d:"Главные итоги; протокол в 12:00"}
   ];
-  function fmt(m){ var h = Math.floor(m/60), mm = m%60; return h + ":" + (mm<10?"0":"") + mm; }
+  function fmt(m){ var t = START_MIN + m, h = Math.floor(t/60), mm = t%60; return h + ":" + (mm<10?"0":"") + mm; }
   function nowIndex(){
-    if (!EVENT_START) return 2;
-    var mins = (Date.now() - Date.parse(EVENT_START)) / 60000;
+    if (!EVENT_DATE) return 3;
+    var mins = (Date.now() - Date.parse(EVENT_DATE + "T10:00:00+03:00")) / 60000;
     for (var i=0;i<PROGRAM.length;i++) if (mins >= PROGRAM[i].from && mins < PROGRAM[i].to) return i;
     return -1;
   }
@@ -371,7 +373,7 @@ pre.act{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace
       li.appendChild(el("div", {"class":"t"}, fmt(p.from) + "–" + fmt(p.to)));
       var box = el("div");
       var b = el("div", {"class":"b"}, p.b);
-      if (i === n) { b.appendChild(document.createTextNode(" ")); b.appendChild(el("span", {"class":"tag now"}, EVENT_START ? "сейчас" : "сейчас · демо")); }
+      if (i === n) { b.appendChild(document.createTextNode(" ")); b.appendChild(el("span", {"class":"tag now"}, EVENT_DATE ? "сейчас" : "сейчас · демо")); }
       box.appendChild(b); box.appendChild(el("div", {"class":"d"}, p.d));
       li.appendChild(box); ol.appendChild(li);
     });
@@ -535,11 +537,11 @@ pre.act{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace
 
   // ---------- feed ----------
   var FEED = [
-    {t:"0:12", who:"Докладчик 1", text:"Обходы полосы отвода раз в месяц не успевают за появлением новых свалок: нужен постоянный мониторинг."},
-    {t:"0:19", who:"Докладчик 1", text:"Предложение: камеры с распознаванием на локомотивах с привязкой к километру и пикету."},
-    {t:"0:24", who:"ИИ-секретарь", ai:true, text:"Итог доклада: 1) проблема — ручной разбор видео; 2) решение — анализ в движении; 3) нужен пилот на одном участке."},
-    {t:"0:31", who:"Докладчик 2", text:"Для экологического контроля с БПЛА не хватает типовых процессов и требований к технике."},
-    {t:"0:36", who:"ИИ-эксперт по нормам", ai:true, text:"Справка: порядок контроля полосы отвода и реагирования на загрязнение установлен распоряжением ОАО «РЖД» № 3339/р от 27.12.2024."}
+    {t:"10:27", who:"Докладчик 1", text:"Обходы полосы отвода раз в месяц не успевают за появлением новых свалок: нужен постоянный мониторинг."},
+    {t:"10:31", who:"Докладчик 1", text:"Предложение: камеры с распознаванием на локомотивах с привязкой к километру и пикету."},
+    {t:"10:35", who:"ИИ-секретарь", ai:true, text:"Итог доклада: 1) проблема — ручной разбор видео; 2) решение — анализ в движении; 3) нужен пилот на одном участке."},
+    {t:"10:38", who:"Докладчик 2", text:"Для экологического контроля с БПЛА не хватает типовых процессов и требований к технике."},
+    {t:"10:42", who:"ИИ-эксперт по нормам", ai:true, text:"Справка: порядок контроля полосы отвода и реагирования на загрязнение установлен распоряжением ОАО «РЖД» № 3339/р от 27.12.2024."}
   ];
   function renderFeed(){
     var box = $("feed"); box.textContent = "";
