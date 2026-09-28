@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10302A">
+<meta name="description" content="Приложение участника круглого стола по экологической безопасности: программа, вопросы спикерам, голосования, фото на анализ ИИ, лента тезисов.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ЭкоАссистент">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>ЭкоАссистент</title>
+<style>
+:root{
+  --bg:#F3F5F0; --surface:#FBFCF9; --surface-2:#E7EEE8; --line:#D5DFD7;
+  --ink:#16261F; --ink-2:#4A5A55; --ink-3:#6B7A74;
+  --brand:#10302A; --accent:#1F7A52; --accent-ink:#F3F5F0; --accent-soft:#D8EADF;
+  --amber:#B7861C; --amber-soft:#F6E8C4; --danger:#B3402E;
+  --bar:#10302A; --bar-ink:#F3F5F0; --bar-ink-2:#9FC0B2;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0D1E19; --surface:#152A23; --surface-2:#1C352C; --line:#27443A;
+    --ink:#E8F0EB; --ink-2:#B3C7BD; --ink-3:#86A195;
+    --brand:#0A1814; --accent:#46B37F; --accent-ink:#0B1A15; --accent-soft:#1D3E30;
+    --amber:#E7B84A; --amber-soft:#3A3219; --danger:#E27A66;
+    --bar:#0A1814; --bar-ink:#E8F0EB; --bar-ink-2:#86A195;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.app{min-height:100%;display:flex;flex-direction:column;max-width:640px;margin:0 auto}
+
+/* header */
+.top{position:sticky;top:0;z-index:5;background:var(--brand);color:#F3F5F0;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px}
+.top-row{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:10px;flex:none}
+.top h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.2px}
+.top p{margin:0;font-size:13px;color:#9FC0B2}
+.top .spacer{flex:1}
+.install{border:1px solid #E7B84A;background:transparent;color:#E7B84A;border-radius:999px;
+  padding:6px 12px;font-size:13px;font-weight:600}
+.demo{margin:0;padding:8px 16px;background:var(--amber-soft);color:var(--ink);font-size:13px}
+
+/* views */
+main{flex:1;padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px))}
+.view{display:flex;flex-direction:column;gap:16px}
+.view[hidden]{display:none!important}
+h2{margin:4px 0 0;font-size:22px;line-height:1.2;text-wrap:balance}
+.lead{margin:0;color:var(--ink-2)}
+.eyebrow{margin:0;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.muted{color:var(--ink-3);font-size:13px}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
+.tag.ai{background:var(--accent-soft);color:var(--accent)}
+.tag.now{background:var(--accent);color:var(--accent-ink)}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:600;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border:1.5px solid var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* program */
+.prog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.prog li{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:14px 12px;border:1px solid var(--line);
+  border-top:none;background:var(--surface)}
+.prog li:first-child{border-top:1px solid var(--line);border-radius:16px 16px 0 0}
+.prog li:last-child{border-radius:0 0 16px 16px}
+.prog .t{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);font-size:14px}
+.prog .b{font-weight:600}
+.prog .d{font-size:14px;color:var(--ink-2);margin-top:2px}
+.prog li.is-now{background:var(--accent-soft)}
+.prog li.ours .b::after{content:" · ТЭБТРАНС";color:var(--amber);font-weight:700}
+
+/* pulse */
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);
+  background:var(--surface);text-align:left;width:100%}
+.opt .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--ink-3);flex:none;display:grid;place-items:center}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent)}
+.opt[aria-pressed="true"] .box::after{content:"";width:10px;height:6px;border:2.5px solid var(--accent-ink);
+  border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.results{display:flex;flex-direction:column;gap:12px}
+.res-top{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.res-top b{font-variant-numeric:tabular-nums}
+.track{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.fill{height:100%;border-radius:6px;background:var(--accent);transition:width .6s ease}
+.mine .res-top span::after{content:" · ваш голос";color:var(--accent);font-weight:600}
+
+/* questions */
+label{font-weight:600;font-size:14px}
+select,textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 12px}
+textarea{min-height:88px;resize:vertical}
+.q{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.q p{margin:4px 0 0}
+.like{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;padding:8px 6px;border-radius:12px;
+  border:1.5px solid var(--line);background:var(--surface);font-variant-numeric:tabular-nums;font-weight:700}
+.like svg{width:18px;height:18px}
+.like[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;padding:8px;border-radius:9px;font-weight:600;font-size:14px;color:var(--ink-2)}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* photo */
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;
+  border:2px dashed var(--line);border-radius:16px;padding:28px 16px;background:var(--surface)}
+.drop svg{width:40px;height:40px;color:var(--accent)}
+.preview{width:100%;max-height:280px;object-fit:cover;border-radius:12px;display:block}
+.progress{height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width 2.4s linear}
+dl.kv{display:grid;grid-template-columns:max-content 1fr;gap:8px 14px;margin:0;font-size:15px}
+dl.kv dt{color:var(--ink-3)}
+dl.kv dd{margin:0;font-weight:600}
+pre.act{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--surface-2);
+  padding:14px;border-radius:12px;margin:0}
+
+/* feed */
+.feed{display:flex;flex-direction:column;gap:12px}
+.item .who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink-3)}
+.item p{margin:6px 0 0}
+.lock{display:flex;gap:12px;align-items:flex-start}
+.lock svg{width:28px;height:28px;color:var(--amber);flex:none;margin-top:2px}
+
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bar);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center}
+.tabs-in{display:flex;width:100%;max-width:640px}
+.tab{flex:1;border:0;background:transparent;color:var(--bar-ink-2);display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:6px 2px;border-radius:10px;font-size:11px;font-weight:600}
+.tab svg{width:24px;height:24px}
+.tab[aria-selected="true"]{color:var(--bar-ink)}
+.tab[aria-selected="true"] svg{color:#E7B84A}
+
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none!important}
+.sheet .panel{background:var(--surface);color:var(--ink);width:100%;max-width:640px;border-radius:20px 20px 0 0;
+  padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.sheet ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;z-index:9;
+  max-width:calc(100% - 32px)}
+.toast[hidden]{display:none!important}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-row">
+      <img class="logo" src="icon-192.png" alt="">
+      <div>
+        <h1>ЭкоАссистент</h1>
+        <p>Круглый стол · экологическая безопасность</p>
+      </div>
+      <div class="spacer"></div>
+      <button class="install" id="installBtn" hidden>Установить</button>
+    </div>
+  </header>
+  <p class="demo" id="demoNote">Демо-версия: данные хранятся только на этом телефоне, примеры помечены.</p>
+
+  <main>
+    <!-- ПРОГРАММА -->
+    <section class="view" id="v-program" aria-labelledby="h-program">
+      <p class="eyebrow">Программа</p>
+      <h2 id="h-program">90 минут, ИИ ведёт протокол</h2>
+      <p class="lead">Отмеченный блок идёт сейчас. После встречи протокол придёт сюда, во вкладку «Лента».</p>
+      <ol class="prog" id="prog"></ol>
+    </section>
+
+    <!-- ПУЛЬС -->
+    <section class="view" id="v-pulse" hidden aria-labelledby="h-pulse">
+      <p class="eyebrow">Пульс зала</p>
+      <h2 id="h-pulse">Какие экологические задачи самые острые?</h2>
+      <p class="lead">Выберите до трёх. Результаты появятся на экране зала.</p>
+      <div class="opts" id="opts"></div>
+      <button class="btn" id="voteBtn" disabled>Отправить голос</button>
+      <div class="card" id="resCard" hidden>
+        <div class="row" style="justify-content:space-between;margin-bottom:12px">
+          <b>Результаты</b><span class="tag">демо-данные</span>
+        </div>
+        <div class="results" id="results"></div>
+        <p class="muted" id="resTotal" style="margin:12px 0 0"></p>
+        <button class="btn ghost" id="revoteBtn" style="margin-top:12px">Изменить голос</button>
+      </div>
+    </section>
+
+    <!-- ВОПРОСЫ -->
+    <section class="view" id="v-questions" hidden aria-labelledby="h-q">
+      <p class="eyebrow">Вопросы спикерам</p>
+      <h2 id="h-q">Задайте вопрос или поддержите чужой</h2>
+      <form class="card" id="qForm" style="display:flex;flex-direction:column;gap:10px">
+        <label for="qTo">Кому</label>
+        <select id="qTo"></select>
+        <label for="qText">Вопрос</label>
+        <textarea id="qText" maxlength="300" placeholder="Например: какие данные нужны для пилота на участке дороги?"></textarea>
+        <div class="row" style="justify-content:space-between">
+          <span class="muted" id="qCount">0 / 300</span>
+          <button class="btn" id="qSend" type="submit" disabled>Отправить</button>
+        </div>
+      </form>
+      <div class="seg" role="tablist" aria-label="Сортировка вопросов">
+        <button role="tab" aria-selected="true" data-sort="top" id="sortTop">Популярные</button>
+        <button role="tab" aria-selected="false" data-sort="new" id="sortNew">Новые</button>
+      </div>
+      <div class="feed" id="qList"></div>
+    </section>
+
+    <!-- ФОТО -->
+    <section class="view" id="v-photo" hidden aria-labelledby="h-photo">
+      <p class="eyebrow">Живая демонстрация</p>
+      <h2 id="h-photo">Фото → анализ ИИ → черновик акта</h2>
+      <p class="lead">Сфотографируйте отходы или загрязнение. ИИ определит вид отходов, класс опасности и объём.</p>
+      <label class="drop" for="photoInput" id="drop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        <b>Сделать или выбрать фото</b>
+        <span class="muted">JPG или PNG, фото остаётся на телефоне</span>
+      </label>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+      <div class="card" id="photoCard" hidden style="display:flex;flex-direction:column;gap:12px">
+        <img class="preview" id="photoPreview" alt="Выбранное фото">
+        <label for="photoPlace">Где снято</label>
+        <select id="photoPlace">
+          <option>Полоса отвода железной дороги</option>
+          <option>Территория станции или депо</option>
+          <option>Пассажирская платформа</option>
+          <option>Другое место</option>
+        </select>
+        <div class="row">
+          <button class="btn" id="analyzeBtn">Отправить на анализ</button>
+          <button class="btn ghost" id="resetPhoto" type="button">Другое фото</button>
+        </div>
+      </div>
+      <div class="card" id="analyzing" hidden style="display:flex;flex-direction:column;gap:10px">
+        <b>ИИ анализирует фото…</b>
+        <div class="progress"><i id="progBar"></i></div>
+      </div>
+      <div class="card" id="result" hidden style="display:flex;flex-direction:column;gap:14px">
+        <div class="row" style="justify-content:space-between"><b>Результат анализа</b><span class="tag">пример ответа</span></div>
+        <dl class="kv">
+          <dt>Вид отходов</dt><dd>Отходы из жилищ несортированные</dd>
+          <dt>Код ФККО</dt><dd>7 31 110 01 72 4</dd>
+          <dt>Класс опасности</dt><dd>IV — малоопасные</dd>
+          <dt>Объём</dt><dd>≈ 2–3 м³ (оценка по фото)</dd>
+          <dt>Место</dt><dd id="resPlace"></dd>
+          <dt>Привязка</dt><dd>км и пикет — по GPS в рабочей версии</dd>
+        </dl>
+        <button class="btn ghost" id="actBtn" aria-expanded="false">Показать черновик акта</button>
+        <pre class="act" id="act" hidden></pre>
+        <p class="muted" style="margin:0">Это демонстрационный ответ. В рабочей версии фото анализирует ИИ-модель в российском контуре, результат проверяет оператор.</p>
+      </div>
+    </section>
+
+    <!-- ЛЕНТА -->
+    <section class="view" id="v-feed" hidden aria-labelledby="h-feed">
+      <p class="eyebrow">Лента и итоги</p>
+      <h2 id="h-feed">Тезисы спикеров в реальном времени</h2>
+      <div class="card lock">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <b>Протокол и проект резолюции</b>
+          <span class="muted">Придут сюда через 15 минут после окончания круглого стола.</span>
+          <button class="btn ghost" id="protoBtn" aria-expanded="false" style="align-self:flex-start">Посмотреть пример</button>
+        </div>
+      </div>
+      <pre class="act" id="proto" hidden></pre>
+      <div class="row" style="justify-content:space-between"><b>Лента тезисов</b><span class="tag">пример ленты</span></div>
+      <div class="feed" id="feed"></div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Разделы">
+    <div class="tabs-in" role="tablist">
+      <button class="tab" role="tab" data-view="program" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Программа</button>
+      <button class="tab" role="tab" data-view="pulse" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Пульс</button>
+      <button class="tab" role="tab" data-view="questions" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Вопросы</button>
+      <button class="tab" role="tab" data-view="photo" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Фото</button>
+      <button class="tab" role="tab" data-view="feed" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg>Лента</button>
+    </div>
+  </nav>
+</div>
+
+<div class="sheet" id="iosSheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+    <b id="iosTitle" style="font-size:18px">Установка на iPhone</b>
+    <ol>
+      <li>Откройте эту страницу в Safari.</li>
+      <li>Нажмите «Поделиться» внизу экрана.</li>
+      <li>Выберите «На экран “Домой”» и нажмите «Добавить».</li>
+    </ol>
+    <button class="btn" id="iosClose">Понятно</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "eco-demo-v1";
+  var $ = function(id){ return document.getElementById(id); };
+
+  // ---------- storage ----------
+  function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+  var S = load();
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+  function toast(msg){
+    var t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.hidden = true; }, 2200);
+  }
+  function el(tag, attrs, text){
+    var e = document.createElement(tag);
+    if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  // ---------- tabs ----------
+  var VIEWS = ["program","pulse","questions","photo","feed"];
+  function show(name){
+    VIEWS.forEach(function(v){ $("v-"+v).hidden = v !== name; });
+    document.querySelectorAll(".tab").forEach(function(b){ b.setAttribute("aria-selected", b.dataset.view === name ? "true" : "false"); });
+    try { sessionStorage.setItem("eco-tab", name); } catch(e){}
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll(".tab").forEach(function(b){ b.addEventListener("click", function(){ show(b.dataset.view); }); });
+
+  // ---------- program ----------
+  // Время начала круглого стола. Пока не задано — в демо «сейчас» идут доклады участников.
+  var EVENT_START = null; // пример: "2026-11-12T11:00:00+03:00"
+  var PROGRAM = [
+    {from:0,  to:5,  b:"Открытие", d:"ИИ-соведущий представляется, QR-код на приложение"},
+    {from:5,  to:10, b:"Пульс зала", d:"Голосование о самых острых задачах — вкладка «Пульс»"},
+    {from:10, to:50, b:"Доклады участников", d:"Лента тезисов, вопросы спикерам — вкладка «Вопросы»"},
+    {from:50, to:60, b:"Доклад с живой демонстрацией", d:"Фото → анализ ИИ — вкладка «Фото»", ours:true},
+    {from:60, to:75, b:"Дискуссия", d:"Топ-вопросы зала, справки по нормам"},
+    {from:75, to:85, b:"Резолюция", d:"Проект на экране, голосование за приоритеты"},
+    {from:85, to:90, b:"Закрытие", d:"Главные итоги; протокол через 15 минут"}
+  ];
+  function fmt(m){ var h = Math.floor(m/60), mm = m%60; return h + ":" + (mm<10?"0":"") + mm; }
+  function nowIndex(){
+    if (!EVENT_START) return 2;
+    var mins = (Date.now() - Date.parse(EVENT_START)) / 60000;
+    for (var i=0;i<PROGRAM.length;i++) if (mins >= PROGRAM[i].from && mins < PROGRAM[i].to) return i;
+    return -1;
+  }
+  function renderProgram(){
+    var ol = $("prog"); ol.textContent = "";
+    var n = nowIndex();
+    PROGRAM.forEach(function(p, i){
+      var li = el("li"); if (i === n) li.className = "is-now"; if (p.ours) li.classList.add("ours");
+      li.appendChild(el("div", {"class":"t"}, fmt(p.from) + "–" + fmt(p.to)));
+      var box = el("div");
+      var b = el("div", {"class":"b"}, p.b);
+      if (i === n) { b.appendChild(document.createTextNode(" ")); b.appendChild(el("span", {"class":"tag now"}, EVENT_START ? "сейчас" : "сейчас · демо")); }
+      box.appendChild(b); box.appendChild(el("div", {"class":"d"}, p.d));
+      li.appendChild(box); ol.appendChild(li);
+    });
+  }
+
+  // ---------- pulse ----------
+  var TOPICS = [
+    {id:"waste", t:"Отходы и свалки на полосе отвода", base:41},
+    {id:"air",   t:"Выбросы в атмосферу", base:27},
+    {id:"water", t:"Сточные воды и водные объекты", base:18},
+    {id:"noise", t:"Шум и вибрация", base:12},
+    {id:"land",  t:"Загрязнение и рекультивация земель", base:16},
+    {id:"uav",   t:"Экологический контроль с БПЛА", base:23},
+    {id:"carbon",t:"Углеродный след перевозок", base:14}
+  ];
+  var picked = [];
+  function renderOpts(){
+    var box = $("opts"); box.textContent = "";
+    TOPICS.forEach(function(o){
+      var b = el("button", {"class":"opt", "type":"button", "aria-pressed": picked.indexOf(o.id) > -1 ? "true" : "false"});
+      b.appendChild(el("span", {"class":"box", "aria-hidden":"true"}));
+      b.appendChild(el("span", null, o.t));
+      b.addEventListener("click", function(){
+        var i = picked.indexOf(o.id);
+        if (i > -1) picked.splice(i,1);
+        else if (picked.length < 3) picked.push(o.id);
+        else { toast("Можно выбрать не больше трёх"); return; }
+        renderOpts();
+      });
+      box.appendChild(b);
+    });
+    $("voteBtn").disabled = picked.length === 0;
+    $("voteBtn").textContent = picked.length ? "Отправить голос (" + picked.length + " из 3)" : "Отправить голос";
+  }
+  function renderResults(){
+    var mine = S.vote || [];
+    var rows = TOPICS.map(function(o){ return {o:o, n:o.base + (mine.indexOf(o.id) > -1 ? 1 : 0)}; })
+      .sort(function(a,b){ return b.n - a.n; });
+    var max = rows[0].n, voters = 64 + (mine.length ? 1 : 0);
+    var box = $("results"); box.textContent = "";
+    rows.forEach(function(r){
+      var d = el("div"); if (mine.indexOf(r.o.id) > -1) d.className = "mine";
+      var top = el("div", {"class":"res-top"}); top.appendChild(el("span", null, r.o.t)); top.appendChild(el("b", null, String(r.n)));
+      var tr = el("div", {"class":"track"}); var f = el("div", {"class":"fill"}); f.style.width = "0%"; tr.appendChild(f);
+      d.appendChild(top); d.appendChild(tr); box.appendChild(d);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ f.style.width = Math.round(r.n / max * 100) + "%"; }); });
+    });
+    $("resTotal").textContent = "Проголосовали: " + voters + " участников (каждый выбирает до трёх тем)";
+  }
+  function pulseState(){
+    var voted = !!(S.vote && S.vote.length);
+    $("opts").hidden = voted; $("voteBtn").hidden = voted; $("resCard").hidden = !voted;
+    if (voted) renderResults(); else renderOpts();
+  }
+  $("voteBtn").addEventListener("click", function(){
+    S.vote = picked.slice(); save(); toast("Голос учтён"); pulseState();
+  });
+  $("revoteBtn").addEventListener("click", function(){
+    picked = (S.vote || []).slice(); S.vote = []; save(); pulseState();
+  });
+
+  // ---------- questions ----------
+  var SPEAKERS = ["Всем участникам","Модератору","Докладчик 1","Докладчик 2","Докладчик 3","Докладчик 4","ТЭБТРАНС"];
+  var SEED_Q = [
+    {id:"s1", to:"ТЭБТРАНС", text:"Сколько времени занимает анализ одного километра полосы отвода по видео с локомотива?", likes:14, ts:1, seed:true},
+    {id:"s2", to:"Всем участникам", text:"Кто должен ликвидировать свалку, если её образовали сторонние лица, а предписание пришло РЖД?", likes:11, ts:2, seed:true},
+    {id:"s3", to:"Докладчик 2", text:"Какие требования к БПЛА нужны для экологического контроля зимой?", likes:6, ts:3, seed:true}
+  ];
+  S.questions = S.questions || [];
+  S.liked = S.liked || {};
+  var sortMode = "top";
+  SPEAKERS.forEach(function(s){ $("qTo").appendChild(el("option", null, s)); });
+  $("qText").addEventListener("input", function(){
+    var n = $("qText").value.trim().length;
+    $("qCount").textContent = $("qText").value.length + " / 300";
+    $("qSend").disabled = n < 5;
+  });
+  $("qForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var text = $("qText").value.trim(); if (text.length < 5) return;
+    S.questions.push({id:"u"+Date.now(), to:$("qTo").value, text:text, likes:0, ts:Date.now(), mine:true});
+    save(); $("qText").value = ""; $("qCount").textContent = "0 / 300"; $("qSend").disabled = true;
+    sortMode = "new"; setSort(); renderQuestions(); toast("Вопрос отправлен модератору");
+  });
+  function setSort(){
+    $("sortTop").setAttribute("aria-selected", sortMode === "top" ? "true" : "false");
+    $("sortNew").setAttribute("aria-selected", sortMode === "new" ? "true" : "false");
+  }
+  $("sortTop").addEventListener("click", function(){ sortMode = "top"; setSort(); renderQuestions(); });
+  $("sortNew").addEventListener("click", function(){ sortMode = "new"; setSort(); renderQuestions(); });
+  function renderQuestions(){
+    var all = SEED_Q.concat(S.questions).map(function(q){
+      return {q:q, n:q.likes + (S.liked[q.id] ? 1 : 0)};
+    });
+    all.sort(sortMode === "top" ? function(a,b){ return b.n - a.n || b.q.ts - a.q.ts; } : function(a,b){ return b.q.ts - a.q.ts; });
+    var box = $("qList"); box.textContent = "";
+    all.forEach(function(r){
+      var q = r.q, c = el("div", {"class":"card q"});
+      var body = el("div");
+      var who = el("div", {"class":"row"});
+      who.appendChild(el("span", {"class":"tag"}, q.to));
+      if (q.mine) who.appendChild(el("span", {"class":"tag ai"}, "ваш вопрос"));
+      if (q.seed) who.appendChild(el("span", {"class":"muted"}, "пример"));
+      body.appendChild(who); body.appendChild(el("p", null, q.text));
+      var lb = el("button", {"class":"like", "type":"button", "aria-pressed": S.liked[q.id] ? "true" : "false", "aria-label":"Поддержать вопрос, сейчас " + r.n});
+      lb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+      lb.appendChild(el("span", null, String(r.n)));
+      lb.addEventListener("click", function(){ S.liked[q.id] = !S.liked[q.id]; save(); renderQuestions(); });
+      c.appendChild(body); c.appendChild(lb); box.appendChild(c);
+    });
+  }
+
+  // ---------- photo ----------
+  var photoURL = null;
+  $("photoInput").addEventListener("change", function(){
+    var f = this.files && this.files[0]; if (!f) return;
+    if (!/^image\//.test(f.type)) { toast("Нужна фотография"); return; }
+    if (photoURL) URL.revokeObjectURL(photoURL);
+    photoURL = URL.createObjectURL(f);
+    $("photoPreview").src = photoURL;
+    $("drop").hidden = true; $("photoCard").hidden = false; $("result").hidden = true; $("analyzing").hidden = true;
+  });
+  $("resetPhoto").addEventListener("click", function(){
+    $("photoInput").value = ""; $("drop").hidden = false; $("photoCard").hidden = true; $("result").hidden = true;
+  });
+  $("analyzeBtn").addEventListener("click", function(){
+    $("analyzeBtn").disabled = true; $("analyzing").hidden = false; $("result").hidden = true;
+    var bar = $("progBar"); bar.style.width = "0%";
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ bar.style.width = "100%"; }); });
+    setTimeout(function(){
+      $("analyzing").hidden = true; $("analyzeBtn").disabled = false;
+      var place = $("photoPlace").value;
+      $("resPlace").textContent = place;
+      $("act").textContent = actText(place);
+      $("act").hidden = true; $("actBtn").setAttribute("aria-expanded","false"); $("actBtn").textContent = "Показать черновик акта";
+      $("result").hidden = false; $("result").scrollIntoView({behavior:"smooth", block:"start"});
+    }, 2500);
+  });
+  function actText(place){
+    var d = new Date(), ds = ("0"+d.getDate()).slice(-2) + "." + ("0"+(d.getMonth()+1)).slice(-2) + "." + d.getFullYear();
+    return "ЧЕРНОВИК АКТА ОБСЛЕДОВАНИЯ (пример)\n\n" +
+      "Дата: " + ds + "\n" +
+      "Место: " + place + ", км ___, пикет ___\n" +
+      "Координаты: ___ (по GPS телефона)\n\n" +
+      "Выявлено: несанкционированное размещение отходов.\n" +
+      "Вид отходов: отходы из жилищ несортированные\n" +
+      "(ФККО 7 31 110 01 72 4), IV класс опасности.\n" +
+      "Ориентировочный объём: 2–3 м³.\n\n" +
+      "Предлагаемые действия:\n" +
+      "1. Установить источник образования отходов.\n" +
+      "2. Направить обращение в орган местного самоуправления.\n" +
+      "3. Включить участок в карту рисковых мест.\n\n" +
+      "Фотоматериалы: 1 шт.\n" +
+      "Составил: ________________";
+  }
+  $("actBtn").addEventListener("click", function(){
+    var open = $("act").hidden; $("act").hidden = !open;
+    this.setAttribute("aria-expanded", open ? "true" : "false");
+    this.textContent = open ? "Скрыть черновик акта" : "Показать черновик акта";
+  });
+
+  // ---------- feed ----------
+  var FEED = [
+    {t:"0:12", who:"Докладчик 1", text:"Обходы полосы отвода раз в месяц не успевают за появлением новых свалок: нужен постоянный мониторинг."},
+    {t:"0:19", who:"Докладчик 1", text:"Предложение: камеры с распознаванием на локомотивах с привязкой к километру и пикету."},
+    {t:"0:24", who:"ИИ-секретарь", ai:true, text:"Итог доклада: 1) проблема — ручной разбор видео; 2) решение — анализ в движении; 3) нужен пилот на одном участке."},
+    {t:"0:31", who:"Докладчик 2", text:"Для экологического контроля с БПЛА не хватает типовых процессов и требований к технике."},
+    {t:"0:36", who:"ИИ-эксперт по нормам", ai:true, text:"Справка: порядок контроля полосы отвода и реагирования на загрязнение установлен распоряжением ОАО «РЖД» № 3339/р от 27.12.2024."}
+  ];
+  function renderFeed(){
+    var box = $("feed"); box.textContent = "";
+    FEED.slice().reverse().forEach(function(f){
+      var c = el("div", {"class":"card item"});
+      var w = el("div", {"class":"who"});
+      w.appendChild(el("b", null, f.t));
+      w.appendChild(el("span", null, f.who));
+      if (f.ai) w.appendChild(el("span", {"class":"tag ai"}, "ИИ"));
+      c.appendChild(w); c.appendChild(el("p", null, f.text));
+      box.appendChild(c);
+    });
+  }
+  var PROTO = "ПРОЕКТ РЕЗОЛЮЦИИ КРУГЛОГО СТОЛА (пример)\n\n" +
+    "1. Провести пилот ИИ-видеомониторинга полосы отвода с локомотива на одном участке.\n" +
+    "2. Создать общесетевую интерактивную карту рисковых мест.\n" +
+    "3. Разработать типовые процессы экологического контроля с БПЛА.\n" +
+    "4. Подготовить предложения по развитию нормативной базы.\n" +
+    "5. Рассмотреть ИИ-сопровождение как формат следующих мероприятий.\n\n" +
+    "Приоритеты по голосованию зала: см. вкладку «Пульс».\n" +
+    "Статус: проект, утверждается организаторами.";
+  $("protoBtn").addEventListener("click", function(){
+    var open = $("proto").hidden; $("proto").hidden = !open; $("proto").textContent = PROTO;
+    this.setAttribute("aria-expanded", open ? "true" : "false");
+    this.textContent = open ? "Скрыть пример" : "Посмотреть пример";
+  });
+
+  // ---------- install ----------
+  var deferred = null;
+  var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferred = e; if (!isStandalone) $("installBtn").hidden = false; });
+  if (isIOS && !isStandalone) $("installBtn").hidden = false;
+  $("installBtn").addEventListener("click", function(){
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.then(function(c){ if (c.outcome === "accepted") { $("installBtn").hidden = true; toast("Приложение установлено"); } deferred = null; });
+    } else if (isIOS) { $("iosSheet").hidden = false; }
+  });
+  window.addEventListener("appinstalled", function(){ $("installBtn").hidden = true; });
+  $("iosClose").addEventListener("click", function(){ $("iosSheet").hidden = true; });
+  $("iosSheet").addEventListener("click", function(e){ if (e.target === this) this.hidden = true; });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+  }
+
+  // ---------- boot ----------
+  renderProgram(); pulseState(); renderQuestions(); renderFeed();
+  var start = "program";
+  try { var s = sessionStorage.getItem("eco-tab"); if (VIEWS.indexOf(s) > -1) start = s; } catch(e){}
+  if (VIEWS.indexOf(location.hash.slice(1)) > -1) start = location.hash.slice(1);
+  show(start);
+  setInterval(renderProgram, 60000);
+})();
+</script>
+</body>
+</html>
